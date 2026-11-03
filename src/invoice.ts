@@ -62,6 +62,7 @@ export function computeCorrection(original: OriginalInvoice, afterLines: readonl
   if (original.discountCode !== undefined) {
     throw new InvoiceError("A correction cannot refer to an original invoice with a discount code");
   }
+  validateOriginalLines(original.lines);
   const before = computeInvoice(original.lines);
   validateAfterLines(original.lines, afterLines);
 
@@ -78,7 +79,21 @@ export function computeCorrection(original: OriginalInvoice, afterLines: readonl
   };
 }
 
-/** Checks that the after state lists each original line once, with only a lower quantity. */
+/** Checks that each SKU appears once on the original invoice, so each after line has one original line to compare with. */
+function validateOriginalLines(originalLines: readonly InvoiceLine[]): void {
+  const seen = new Set<string>();
+  for (const line of originalLines) {
+    if (seen.has(line.sku)) {
+      throw new InvoiceError(`Line ${line.sku}: listed more than once on the original invoice`);
+    }
+    seen.add(line.sku);
+  }
+}
+
+/**
+ * Checks that the after state lists each original line once, with only a lower quantity.
+ * An empty after state is allowed: it removes every line, so every after amount is 0 (ADR 0004).
+ */
 function validateAfterLines(originalLines: readonly InvoiceLine[], afterLines: readonly InvoiceLine[]): void {
   const originalBySku = new Map(originalLines.map((line) => [line.sku, line]));
   const seen = new Set<string>();
@@ -92,6 +107,9 @@ function validateAfterLines(originalLines: readonly InvoiceLine[], afterLines: r
     }
     seen.add(line.sku);
     validateCorrectedLine(line, originalLine);
+  }
+  if (afterLines.length === 0) {
+    return;
   }
   for (const sku of originalBySku.keys()) {
     if (!seen.has(sku)) {

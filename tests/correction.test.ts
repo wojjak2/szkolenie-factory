@@ -77,8 +77,20 @@ describe("computeCorrection", () => {
     expect(() => computeCorrection({ lines: [books, pens] }, [books])).toThrow(InvoiceError);
   });
 
-  it("rejects an empty after state when the original has lines", () => {
-    expect(() => computeCorrection({ lines: [books] }, [])).toThrow(InvoiceError);
+  it("makes every after amount 0 when the after state has no lines (ADR 0004)", () => {
+    const before = computeInvoice([books, pens]);
+    expect(computeCorrection({ lines: [books, pens] }, [])).toEqual({
+      subtotal: -before.subtotal,
+      discount: 0,
+      net: -before.net,
+      vat: -before.vat,
+      total: -before.total,
+    });
+  });
+
+  it("rejects an original invoice that lists a SKU twice", () => {
+    const original = { lines: [books, { ...books, quantity: 1 }] };
+    expect(() => computeCorrection(original, [books])).toThrow(InvoiceError);
   });
 
   it("rejects an original invoice that has a discount code", () => {
