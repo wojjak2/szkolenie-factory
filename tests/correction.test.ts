@@ -68,6 +68,19 @@ describe("computeCorrection", () => {
     expect(() => computeCorrection(original, [{ ...books, sku: "OTHER" }])).toThrow(InvoiceError);
   });
 
+  it("rejects a SKU listed twice in the after state", () => {
+    const original = { lines: [books] };
+    expect(() => computeCorrection(original, [books, { ...books, quantity: 1 }])).toThrow(InvoiceError);
+  });
+
+  it("rejects an original line that is missing from the after state", () => {
+    expect(() => computeCorrection({ lines: [books, pens] }, [books])).toThrow(InvoiceError);
+  });
+
+  it("rejects an empty after state when the original has lines", () => {
+    expect(() => computeCorrection({ lines: [books] }, [])).toThrow(InvoiceError);
+  });
+
   it("rejects an original invoice that has a discount code", () => {
     expect(() => computeCorrection({ lines: [books], discountCode: "SAVE10" }, [books])).toThrow(InvoiceError);
   });
