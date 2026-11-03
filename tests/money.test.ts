@@ -30,6 +30,23 @@ describe("formatCents", () => {
   it("rejects fractional cents", () => {
     expect(() => formatCents(1.5)).toThrow(MoneyError);
   });
+
+  it("keeps the minus sign on negative amounts below one whole unit", () => {
+    expect(formatCents(-50)).toBe("-0.50 PLN");
+    expect(formatCents(-5)).toBe("-0.05 PLN");
+    expect(formatCents(-1)).toBe("-0.01 PLN");
+    expect(formatCents(-99)).toBe("-0.99 PLN");
+  });
+
+  it("formats negative amounts of one unit or more with a minus sign", () => {
+    expect(formatCents(-150)).toBe("-1.50 PLN");
+    expect(formatCents(-12345)).toBe("-123.45 PLN");
+  });
+
+  it("formats zero and positive sub-unit amounts without a sign", () => {
+    expect(formatCents(0)).toBe("0.00 PLN");
+    expect(formatCents(50)).toBe("0.50 PLN");
+  });
 });
 
 describe("applyRate", () => {
