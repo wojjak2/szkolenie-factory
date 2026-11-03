@@ -17,8 +17,9 @@ export const DISCOUNT_CODES: Readonly<Record<string, Discount>> = {
   MINUS20: { kind: "fixed", amount: 2000 },
 };
 
+/** Codes are matched ignoring letter case and surrounding spaces, so `" save10 "` finds `SAVE10`. */
 export function lookupDiscount(code: string): Discount {
-  const discount = DISCOUNT_CODES[code];
+  const discount = DISCOUNT_CODES[code.trim().toUpperCase()];
   if (discount === undefined) {
     throw new DiscountError(`Unknown discount code: "${code}"`);
   }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DiscountError } from "../src/discounts.ts";
 import { computeInvoice, InvoiceError, type InvoiceLine } from "../src/invoice.ts";
 
 const book: InvoiceLine = { sku: "BOOK", quantity: 2, unitPrice: 4999, vatRate: 0.05 };
@@ -20,6 +21,16 @@ describe("computeInvoice", () => {
     expect(totals.discount).toBe(36000);
     expect(totals.net).toBe(323998);
     expect(totals.total).toBe(totals.net + totals.vat);
+  });
+
+  it("matches a discount code regardless of letter case or surrounding spaces", () => {
+    const expected = computeInvoice([book, laptop], "SAVE10");
+    expect(computeInvoice([book, laptop], "save10")).toEqual(expected);
+    expect(computeInvoice([book, laptop], " Save10 ")).toEqual(expected);
+  });
+
+  it("still rejects an unknown code even when it is normalised", () => {
+    expect(() => computeInvoice([book, laptop], "SAVE99")).toThrow(DiscountError);
   });
 
   it("caps a fixed discount at the subtotal", () => {
