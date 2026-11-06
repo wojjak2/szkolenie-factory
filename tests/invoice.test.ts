@@ -37,7 +37,9 @@ describe("computeInvoice", () => {
     const cheap: InvoiceLine = { sku: "PEN", quantity: 1, unitPrice: 500, vatRate: 0.23 };
     expect(computeInvoice([cheap], "MINUS20")).toMatchObject({ discount: 500, net: 0, vat: 0, total: 0 });
   });
+});
 
+describe("computeInvoice", () => {
   it("rejects an empty invoice", () => {
     expect(() => computeInvoice([])).toThrow(InvoiceError);
   });
